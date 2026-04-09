@@ -25,7 +25,7 @@ class BaseTopo(Topo):
         self.addLink(s3, h2)
 
 
-def enable_sflow(net, collector_host, collector_port, sampling=1000, polling=20):
+def enable_sflow(net, collector_host, collector_port, sampling=10, polling=20):
     for sw in net.switches:
         bridge = sw.name
         agent_if = f"{bridge}-eth1"

@@ -38,7 +38,7 @@ func (p *Parser) decodePacket(packet []byte, remote *net.UDPAddr) (ParsedEvents,
 func (p *Parser) parseFlowSample(flowSample *sflow.FlowSample, remote *net.UDPAddr) []FlowEvent {
 	var events []FlowEvent
 	for _, record := range flowSample.Records {
-		rawPacket, ok := record.(sflow.RawPacketFlow) // fix 1: assert record type
+		rawPacket, ok := record.(sflow.RawPacketFlow)
 		if !ok {
 			continue
 		}
