@@ -23,5 +23,16 @@ func Load(env Environment) (*Config, error) {
 	if _, err := toml.DecodeFile(path, &cfg); err != nil {
 		return nil, fmt.Errorf("decode toml config %q: %w", path, err)
 	}
+
+	if cfg.OpenSearch.Host == "" {
+		return nil, fmt.Errorf("opensearch.host must not be empty in %q", path)
+	}
+	if cfg.OpenSearch.CounterIndex == "" {
+		return nil, fmt.Errorf("opensearch.counter-index must not be empty in %q", path)
+	}
+	if cfg.OpenSearch.FlowIndex == "" {
+		return nil, fmt.Errorf("opensearch.flow-index must not be empty in %q", path)
+	}
+
 	return &cfg, nil
 }
