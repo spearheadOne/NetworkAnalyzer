@@ -10,7 +10,7 @@ import (
 
 type Parser struct{}
 
-func (p *Parser) decodePacket(packet []byte, remote *net.UDPAddr) (ParsedEvents, error) {
+func (p *Parser) DecodePacket(packet []byte, remote *net.UDPAddr) (ParsedEvents, error) {
 	reader := bytes.NewReader(packet)
 	decoder := sflow.NewDecoder(reader)
 

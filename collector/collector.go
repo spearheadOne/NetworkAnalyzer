@@ -11,7 +11,7 @@ type Collector struct {
 	parser *Parser
 }
 
-func (c *Collector) listenUdp() {
+func (c *Collector) ListenUdp() {
 
 	udpAddr, err := net.ResolveUDPAddr("udp", c.addr)
 	if err != nil {
@@ -45,7 +45,7 @@ func (c *Collector) listenUdp() {
 			buf[:previewLen],
 		)
 
-		events, err := c.parser.decodePacket(packet, remoteAddr)
+		events, err := c.parser.DecodePacket(packet, remoteAddr)
 		if err != nil {
 			log.Printf("decode packet failed from %s: %v", remoteAddr.String(), err)
 			continue
