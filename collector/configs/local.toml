@@ -1,7 +1,7 @@
 [opensearch]
 host = "http://localhost:9200"
 counter-index = "sflow-counter-1"
-flow-idex = "sflow-flow-1"
+flow-index = "sflow-flow-1"
 
 [topology]
 host = ":6343"

@@ -9,9 +9,7 @@ import (
 )
 
 func main() {
-
 	envFlag := flag.String("env", "", "Environment: local,dev,uat,prod")
-
 	flag.Parse()
 
 	if *envFlag == "" {
@@ -19,17 +17,29 @@ func main() {
 		os.Exit(1)
 	}
 
-	env, err := config.ParseEnvironment(*envFlag)
+	cfg, err := config.Load(*envFlag)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	cfg, err := config.Load(env)
+	if cfg.OpenSearch.Host == "" {
+		log.Fatalf("opensearch.host must not be empty in %q", cfg.OpenSearch)
+	}
+	if cfg.OpenSearch.CounterIndex == "" {
+		log.Fatalf("opensearch.counter-index must not be empty in %q", cfg.OpenSearch)
+	}
+
+	if cfg.OpenSearch.FlowIndex == "" {
+		log.Fatalf("opensearch.flow-index must not be empty in %q", cfg.OpenSearch)
+	}
+
+	backend, err := NewOpenSearchBackend(cfg.OpenSearch)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fmt.Println(cfg.OpenSearch.Host)
+	indexer := NewIndexer(cfg.OpenSearch, backend)
+	indexer.CreateFlowIndex()
 
 }
 
