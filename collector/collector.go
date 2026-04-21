@@ -9,6 +9,7 @@ import (
 type Collector struct {
 	addr   string
 	parser *Parser
+	writer *Writer
 }
 
 func (c *Collector) ListenUdp() {
@@ -51,12 +52,10 @@ func (c *Collector) ListenUdp() {
 			continue
 		}
 
-		for _, evt := range events.Flows {
-			log.Printf("flow event: %+v", evt)
-		}
-
-		for _, evt := range events.Counters {
-			log.Printf("counter event: %+v", evt)
+		err = c.writer.Index(events)
+		if err != nil {
+			log.Printf("index failed: %v", err)
+			continue
 		}
 	}
 }

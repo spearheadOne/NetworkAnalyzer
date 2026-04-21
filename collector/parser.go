@@ -63,7 +63,7 @@ func (p *Parser) parseCounterSample(counterSample *sflow.CounterSample, remote *
 
 		events = append(events, CounterEvent{
 			Event:        baseEvent(remote, EventKindCounter),
-			Index:        genericCounters.Index,
+			IfIndex:      genericCounters.Index,
 			InOctets:     genericCounters.InOctets,
 			OutOctets:    genericCounters.OutOctets,
 			InUcastPkts:  genericCounters.InUnicastPackets,

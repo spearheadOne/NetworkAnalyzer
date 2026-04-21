@@ -22,7 +22,7 @@ type FlowEvent struct {
 
 type CounterEvent struct {
 	Event
-	Index        uint32 `json:"index,omitempty"`
+	IfIndex      uint32 `json:"if_index,omitempty"`
 	InOctets     uint64 `json:"in_octets,omitempty"`
 	OutOctets    uint64 `json:"out_octets,omitempty"`
 	InUcastPkts  uint32 `json:"in_ucast_pkts,omitempty"`

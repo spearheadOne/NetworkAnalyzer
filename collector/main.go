@@ -23,11 +23,17 @@ func main() {
 	}
 
 	if cfg.Topology.Host == "" {
-		log.Fatalf("topology.host must not be empty in %q", cfg)
+		log.Fatalf("topology.host must not be empty")
 	}
 
 	parser := &Parser{}
-	collector := &Collector{cfg.Topology.Host, parser}
+	indexBackend, err := NewOpenSearchBackend(cfg.OpenSearch)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	indexer := &Writer{indexBackend}
+	collector := &Collector{cfg.Topology.Host, parser, indexer}
 	collector.ListenUdp()
 }
 
