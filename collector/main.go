@@ -1,6 +1,7 @@
 package main
 
 import (
+	"collector/opensearch"
 	"config"
 	"context"
 	"flag"
@@ -30,13 +31,12 @@ func main() {
 	}
 
 	parser := &Parser{}
-	indexBackend, err := NewOpenSearchBackend(cfg.OpenSearch)
+	indexBackend, err := opensearch.NewOpenSearchBackend(cfg.OpenSearch)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	writer := &Writer{indexBackend}
-	collector := NewCollector(cfg.Topology.Addr, parser, writer, cfg.Collector.QueueSize, cfg.Collector.WorkersNum)
+	collector := NewCollector(cfg.Topology.Addr, parser, indexBackend, cfg.Collector.QueueSize, cfg.Collector.WorkersNum)
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()

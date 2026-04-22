@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"collector/ingest"
 	"net"
 	"time"
 
@@ -9,21 +10,21 @@ import (
 )
 
 type PacketParser interface {
-	DecodePacket(packet []byte, remote *net.UDPAddr) (ParsedEvents, error)
+	DecodePacket(packet []byte, remote *net.UDPAddr) (ingest.ParsedEvents, error)
 }
 
 type Parser struct{}
 
-func (p *Parser) DecodePacket(packet []byte, remote *net.UDPAddr) (ParsedEvents, error) {
+func (p *Parser) DecodePacket(packet []byte, remote *net.UDPAddr) (ingest.ParsedEvents, error) {
 	reader := bytes.NewReader(packet)
 	decoder := sflow.NewDecoder(reader)
 
 	datagram, err := decoder.Decode()
 	if err != nil {
-		return ParsedEvents{}, err
+		return ingest.ParsedEvents{}, err
 	}
 
-	var events ParsedEvents
+	var events ingest.ParsedEvents
 
 	for _, sample := range datagram.Samples {
 
@@ -39,16 +40,16 @@ func (p *Parser) DecodePacket(packet []byte, remote *net.UDPAddr) (ParsedEvents,
 	return events, nil
 }
 
-func (p *Parser) parseFlowSample(flowSample *sflow.FlowSample, remote *net.UDPAddr) []FlowEvent {
-	var events []FlowEvent
+func (p *Parser) parseFlowSample(flowSample *sflow.FlowSample, remote *net.UDPAddr) []ingest.FlowEvent {
+	var events []ingest.FlowEvent
 	for _, record := range flowSample.Records {
 		rawPacket, ok := record.(sflow.RawPacketFlow)
 		if !ok {
 			continue
 		}
 
-		events = append(events, FlowEvent{
-			Event:       baseEvent(remote, EventKindFlow),
+		events = append(events, ingest.FlowEvent{
+			Event:       baseEvent(remote, ingest.EventKindFlow),
 			FrameLength: rawPacket.FrameLength,
 			SampleRate:  flowSample.SamplingRate,
 		})
@@ -57,16 +58,16 @@ func (p *Parser) parseFlowSample(flowSample *sflow.FlowSample, remote *net.UDPAd
 	return events
 }
 
-func (p *Parser) parseCounterSample(counterSample *sflow.CounterSample, remote *net.UDPAddr) []CounterEvent {
-	var events []CounterEvent
+func (p *Parser) parseCounterSample(counterSample *sflow.CounterSample, remote *net.UDPAddr) []ingest.CounterEvent {
+	var events []ingest.CounterEvent
 	for _, record := range counterSample.Records {
 		genericCounters, ok := record.(sflow.GenericInterfaceCounters)
 		if !ok {
 			continue
 		}
 
-		events = append(events, CounterEvent{
-			Event:        baseEvent(remote, EventKindCounter),
+		events = append(events, ingest.CounterEvent{
+			Event:        baseEvent(remote, ingest.EventKindCounter),
 			IfIndex:      genericCounters.Index,
 			InOctets:     genericCounters.InOctets,
 			OutOctets:    genericCounters.OutOctets,
@@ -78,8 +79,8 @@ func (p *Parser) parseCounterSample(counterSample *sflow.CounterSample, remote *
 	return events
 }
 
-func baseEvent(remote *net.UDPAddr, kind string) Event {
-	return Event{
+func baseEvent(remote *net.UDPAddr, kind string) ingest.Event {
+	return ingest.Event{
 		Timestamp: time.Now().UTC(),
 		Kind:      kind,
 		AgentIP:   remote.IP.String(),

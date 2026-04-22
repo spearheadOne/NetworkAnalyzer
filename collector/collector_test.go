@@ -1,6 +1,7 @@
 package main
 
 import (
+	"collector/ingest"
 	"context"
 	"errors"
 	"net"
@@ -14,11 +15,11 @@ import (
 type mockParser struct {
 	mu     sync.Mutex
 	calls  [][]byte
-	result ParsedEvents
+	result ingest.ParsedEvents
 	err    error
 }
 
-func (m *mockParser) DecodePacket(packet []byte, _ *net.UDPAddr) (ParsedEvents, error) {
+func (m *mockParser) DecodePacket(packet []byte, _ *net.UDPAddr) (ingest.ParsedEvents, error) {
 	m.mu.Lock()
 	m.calls = append(m.calls, packet)
 	m.mu.Unlock()
@@ -33,24 +34,24 @@ func (m *mockParser) callCount() int {
 
 type mockWriter struct {
 	mu     sync.Mutex
-	events []ParsedEvents
+	events []ingest.ParsedEvents
 	err    error
 }
 
-func (m *mockWriter) Index(events ParsedEvents) error {
+func (m *mockWriter) Index(events ingest.ParsedEvents) error {
 	m.mu.Lock()
 	m.events = append(m.events, events)
 	m.mu.Unlock()
 	return m.err
 }
 
-func (m *mockWriter) indexed() []ParsedEvents {
+func (m *mockWriter) indexed() []ingest.ParsedEvents {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	return append([]ParsedEvents(nil), m.events...)
+	return append([]ingest.ParsedEvents(nil), m.events...)
 }
 
-func newTestCollector(t *testing.T, parser PacketParser, writer EventWriter) (*Collector, *net.UDPConn, context.CancelFunc) {
+func newTestCollector(t *testing.T, parser PacketParser, writer ingest.EventWriter) (*Collector, *net.UDPConn, context.CancelFunc) {
 	t.Helper()
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -83,8 +84,8 @@ func sendAndWait(t *testing.T, conn *net.UDPConn, payload []byte, condition func
 
 func TestCollector_FlowEventsAreIndexed(t *testing.T) {
 	parser := &mockParser{
-		result: ParsedEvents{
-			Flows: []FlowEvent{{FrameLength: 128, SampleRate: 512}},
+		result: ingest.ParsedEvents{
+			Flows: []ingest.FlowEvent{{FrameLength: 128, SampleRate: 512}},
 		},
 	}
 	writer := &mockWriter{}
@@ -107,8 +108,8 @@ func TestCollector_FlowEventsAreIndexed(t *testing.T) {
 
 func TestCollector_CounterEventsAreIndexed(t *testing.T) {
 	parser := &mockParser{
-		result: ParsedEvents{
-			Counters: []CounterEvent{{IfIndex: 1, InOctets: 100_000, OutOctets: 200_000}},
+		result: ingest.ParsedEvents{
+			Counters: []ingest.CounterEvent{{IfIndex: 1, InOctets: 100_000, OutOctets: 200_000}},
 		},
 	}
 	writer := &mockWriter{}
@@ -130,7 +131,7 @@ func TestCollector_CounterEventsAreIndexed(t *testing.T) {
 }
 
 func TestCollector_EmptyEventsAreDropped(t *testing.T) {
-	parser := &mockParser{result: ParsedEvents{}}
+	parser := &mockParser{result: ingest.ParsedEvents{}}
 	writer := &mockWriter{}
 
 	c, conn, cancel := newTestCollector(t, parser, writer)
@@ -169,7 +170,7 @@ func TestCollector_ParseErrorIsSkipped(t *testing.T) {
 func TestCollector_WriterErrorDoesNotStopWorker(t *testing.T) {
 	// Writer always fails – worker should log and keep draining, not crash.
 	parser := &mockParser{
-		result: ParsedEvents{Flows: []FlowEvent{{FrameLength: 64}}},
+		result: ingest.ParsedEvents{Flows: []ingest.FlowEvent{{FrameLength: 64}}},
 	}
 	writer := &mockWriter{err: errors.New("index unavailable")}
 
@@ -196,7 +197,7 @@ func TestCollector_WriterErrorDoesNotStopWorker(t *testing.T) {
 }
 
 func TestCollector_GracefulShutdown(t *testing.T) {
-	parser := &mockParser{result: ParsedEvents{}}
+	parser := &mockParser{result: ingest.ParsedEvents{}}
 	writer := &mockWriter{}
 
 	c, _, cancel := newTestCollector(t, parser, writer)

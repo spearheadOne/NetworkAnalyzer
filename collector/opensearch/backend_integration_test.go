@@ -1,6 +1,7 @@
-package main
+package opensearch
 
 import (
+	"collector/ingest"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -55,11 +56,11 @@ func TestOpenSearchBackend_Index(t *testing.T) {
 	err = createIndexes(backend, ctx)
 	require.NoError(t, err)
 
-	events := ParsedEvents{
+	events := ingest.ParsedEvents{
 
-		Flows: []FlowEvent{
+		Flows: []ingest.FlowEvent{
 			{
-				Event: Event{
+				Event: ingest.Event{
 					Timestamp: time.Now().UTC(),
 					Kind:      "flow",
 					AgentIP:   "192.168.5.15",
@@ -69,9 +70,9 @@ func TestOpenSearchBackend_Index(t *testing.T) {
 				SampleRate:  1,
 			},
 		},
-		Counters: []CounterEvent{
+		Counters: []ingest.CounterEvent{
 			{
-				Event: Event{
+				Event: ingest.Event{
 					Timestamp: time.Now().UTC(),
 					Kind:      "counter",
 					AgentIP:   "192.168.5.15",
@@ -107,7 +108,7 @@ func TestOpenSearchBackend_Index_EmptyEvents(t *testing.T) {
 		flowIndex:    "test-flow",
 		counterIndex: "test-counter",
 	}
-	err := backend.Index(ParsedEvents{})
+	err := backend.Index(ingest.ParsedEvents{})
 	require.NoError(t, err)
 
 }

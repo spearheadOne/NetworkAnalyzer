@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"collector/ingest"
 	"encoding/binary"
 	"net"
 	"testing"
@@ -39,7 +40,7 @@ func TestParser_parseFlowSample(t *testing.T) {
 	events := p.parseFlowSample(sample, remote)
 
 	require.Len(t, events, 2)
-	require.Equal(t, EventKindFlow, events[0].Kind)
+	require.Equal(t, ingest.EventKindFlow, events[0].Kind)
 	require.Equal(t, "127.0.0.1", events[0].AgentIP)
 	require.Equal(t, uint32(1518), events[0].FrameLength)
 	require.Equal(t, uint32(10), events[0].SampleRate)
@@ -68,7 +69,7 @@ func TestParser_parseCounterSample(t *testing.T) {
 
 	events := p.parseCounterSample(sample, remote)
 
-	require.Equal(t, EventKindCounter, events[0].Kind)
+	require.Equal(t, ingest.EventKindCounter, events[0].Kind)
 	require.Equal(t, "127.0.0.1", events[0].AgentIP)
 	require.Equal(t, uint32(8), events[0].IfIndex)
 	require.Equal(t, uint64(1000), events[0].InOctets)
@@ -90,7 +91,7 @@ func TestParser_DecodeFlowSample(t *testing.T) {
 	require.Equal(t, uint32(128), f.FrameLength)
 	require.Equal(t, uint32(512), f.SampleRate)
 	require.Equal(t, "127.0.0.1", f.AgentIP)
-	require.Equal(t, EventKindFlow, f.Kind)
+	require.Equal(t, ingest.EventKindFlow, f.Kind)
 }
 
 func TestParser_DecodeCounterSample(t *testing.T) {
@@ -109,7 +110,7 @@ func TestParser_DecodeCounterSample(t *testing.T) {
 	require.Equal(t, uint32(500), c.InUcastPkts)
 	require.Equal(t, uint32(800), c.OutUcastPkts)
 	require.Equal(t, "127.0.0.1", c.AgentIP)
-	require.Equal(t, EventKindCounter, c.Kind)
+	require.Equal(t, ingest.EventKindCounter, c.Kind)
 }
 
 func sflowDatagram(samples ...func() (sampleType uint32, body []byte)) []byte {

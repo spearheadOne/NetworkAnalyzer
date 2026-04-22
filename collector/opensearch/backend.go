@@ -1,7 +1,8 @@
-package main
+package opensearch
 
 import (
 	"bytes"
+	"collector/ingest"
 	"config"
 	"context"
 	"encoding/json"
@@ -31,7 +32,7 @@ func NewOpenSearchBackend(openSearchConfig config.OpenSearchConfig) (*OpenSearch
 		counterIndex: openSearchConfig.CounterIndex}, nil
 }
 
-func (b *OpenSearchBackend) Index(events ParsedEvents) error {
+func (b *OpenSearchBackend) Index(events ingest.ParsedEvents) error {
 	if len(events.Flows) == 0 && len(events.Counters) == 0 {
 		return nil
 	}

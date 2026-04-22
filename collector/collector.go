@@ -1,6 +1,7 @@
 package main
 
 import (
+	"collector/ingest"
 	"context"
 	"fmt"
 	"log"
@@ -12,21 +13,21 @@ import (
 type Collector struct {
 	addr       string
 	parser     PacketParser
-	writer     EventWriter
-	eventsCh   chan ParsedEvents
+	writer     ingest.EventWriter
+	eventsCh   chan ingest.ParsedEvents
 	workersNum int
 
 	conn *net.UDPConn
 	wg   sync.WaitGroup
 }
 
-func NewCollector(addr string, parser PacketParser, writer EventWriter, queueSize int, workersNum int) *Collector {
+func NewCollector(addr string, parser PacketParser, writer ingest.EventWriter, queueSize int, workersNum int) *Collector {
 
 	return &Collector{
 		addr:       addr,
 		parser:     parser,
 		writer:     writer,
-		eventsCh:   make(chan ParsedEvents, queueSize),
+		eventsCh:   make(chan ingest.ParsedEvents, queueSize),
 		workersNum: workersNum,
 	}
 
