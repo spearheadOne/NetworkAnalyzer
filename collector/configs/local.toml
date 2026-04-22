@@ -4,4 +4,8 @@ counter-index = "sflow-counter-1"
 flow-index = "sflow-flow-1"
 
 [topology]
-host = ":6343"
+address = ":6343"
+
+[collector]
+workers-num = 5
+queue-size = 10000

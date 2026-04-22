@@ -2,10 +2,13 @@ package main
 
 import (
 	"config"
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -22,8 +25,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if cfg.Topology.Host == "" {
-		log.Fatalf("topology.host must not be empty")
+	if err = validateConfig(cfg); err != nil {
+		log.Fatal(err)
 	}
 
 	parser := &Parser{}
@@ -32,12 +35,46 @@ func main() {
 		log.Fatal(err)
 	}
 
-	indexer := &Writer{indexBackend}
-	collector := &Collector{cfg.Topology.Host, parser, indexer}
-	collector.ListenUdp()
+	writer := &Writer{indexBackend}
+	collector := NewCollector(cfg.Topology.Addr, parser, writer, cfg.Collector.QueueSize, cfg.Collector.WorkersNum)
+
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	if err = collector.Start(ctx); err != nil {
+		log.Fatal(err)
+	}
+	log.Println("collector started")
+
+	collector.Wait()
+	log.Println("collector stopped")
 }
 
 func printUsage() {
 	fmt.Println("Usage:")
 	fmt.Println("./collector -env=local")
+}
+
+func validateConfig(cfg *config.Config) error {
+
+	if cfg.Topology.Addr == "" {
+		return fmt.Errorf("topology.host must not be empty")
+	}
+	if cfg.OpenSearch.Host == "" {
+		return fmt.Errorf("opensearch.host must not be empty")
+	}
+	if cfg.OpenSearch.FlowIndex == "" {
+		return fmt.Errorf("opensearch.flow-index must not be empty")
+	}
+	if cfg.OpenSearch.CounterIndex == "" {
+		return fmt.Errorf("opensearch.counter-index must not be empty")
+	}
+	if cfg.Collector.WorkersNum <= 0 {
+		return fmt.Errorf("collector.workers-num must be > 0")
+	}
+	if cfg.Collector.QueueSize <= 0 {
+		return fmt.Errorf("collector.queue-size must be > 0")
+	}
+	return nil
+
 }

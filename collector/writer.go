@@ -1,11 +1,11 @@
 package main
 
-type WriterBackend interface {
+type EventWriter interface {
 	Index(events ParsedEvents) error
 }
 
 type Writer struct {
-	backend WriterBackend
+	backend EventWriter
 }
 
 func (i *Writer) Index(events ParsedEvents) error {

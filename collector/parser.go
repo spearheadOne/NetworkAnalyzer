@@ -8,6 +8,10 @@ import (
 	"github.com/Cistern/sflow"
 )
 
+type PacketParser interface {
+	DecodePacket(packet []byte, remote *net.UDPAddr) (ParsedEvents, error)
+}
+
 type Parser struct{}
 
 func (p *Parser) DecodePacket(packet []byte, remote *net.UDPAddr) (ParsedEvents, error) {

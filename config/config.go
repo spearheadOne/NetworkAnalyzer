@@ -10,10 +10,16 @@ import (
 type Config struct {
 	Topology   TopologyConfig   `toml:"topology"`
 	OpenSearch OpenSearchConfig `toml:"opensearch"`
+	Collector  CollectorConfig  `toml:"collector"`
 }
 
 type TopologyConfig struct {
-	Host string `toml:"host"`
+	Addr string `toml:"Address"`
+}
+
+type CollectorConfig struct {
+	WorkersNum int `toml:"workers-num"`
+	QueueSize  int `toml:"queue-size"`
 }
 
 type OpenSearchConfig struct {
